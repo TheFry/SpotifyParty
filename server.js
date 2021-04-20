@@ -3,7 +3,8 @@ var fs = require('fs');
 const crypto=require('crypto');
 const express = require('express');
 const spotifyApi = require('spotify-web-api-node');
-const credentials = require('./credentials.js')
+const credentials = require('./credentials.js');
+const SpotifyWebApi = require('spotify-web-api-node');
 
 const app = express();
 const PORT = 8888;
@@ -38,7 +39,7 @@ function getTokens(res, req, next){
 
   accessCode = req.query.code;
   spotify.authorizationCodeGrant(accessCode).then(
-    function(data)
+    (data) =>
     {
       spotify.setAccessToken(data.body['access_token']);
       spotify.setRefreshToken(data.body['refresh_token']);
@@ -61,8 +62,7 @@ function writeTokens(req, res, next){
   var hash = crypto.createHash('sha256');
   var returnURL = SHARE_URI;
 
-  console.log(refTok);
-  hash.update(refTok);
+  hash.update(res.locals.email);
   hash = hash.digest("hex");
   returnURL += hash;
   var tokData = {
@@ -83,10 +83,9 @@ function writeTokens(req, res, next){
 
 
 // Express Server
-
-app.use("/join", (req, res, next) => 
+app.use("/play", (req, res, next) => 
 {
-  res.send("Workin on it");
+  res.redirect(`${URI}/play.html?id=${req.query.id}`);
 });
 
 
@@ -98,11 +97,27 @@ app.use("/callback",
   },
 
   (req, res, next) => {
+    console.log("Get email")
+    spotify = res.locals.spotify;
+    spotify.getMe().then(
+      (data) =>
+      {
+        res.locals.email = data.body.email;
+        next();
+      },
+      (err) => 
+      {
+        console.log(`Error spotify.getMe() ${err}`);
+        res.send("Error");
+      }
+    );
+  },
+
+  (req, res, next) => {
     console.log("Write tokens");
     writeTokens(req, res, next);
   }
 );
-
 
 app.use("/start",
   (req, res, next) => {

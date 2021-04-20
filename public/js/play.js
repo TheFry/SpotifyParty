@@ -1,25 +1,26 @@
-var Spotify = require('spotify-web-api-js');
-const searchBtn = document.querySelector('#search');
-const CLIENT_ID = '2d23afdddd914be784ec0f3565768e07';
-
-
+const searchBtn = document.querySelector('#search-btn');
+const searchInput = document.querySelector('#search-input');
 addEventListeners();
-login();
-function login(){
 
-}
 function addEventListeners(){
   searchBtn.addEventListener('click', searchNow);
 }
 
 
 function searchNow(e){
-  
-}
+  var urlParams = new URLSearchParams(window.location.search);
+  var id;
+  if(urlParams.has('id')){
+    id = urlParams.get('id');
+  }else{
+    console.log("No id parmater");
+    return;
+  }
 
-// spotifyApi.searchTracks('Love')
-//   .then(function(data) {
-//     console.log('Search by "Love"', data.body);
-//   }, function(err) {
-//     console.error(err);
-//   });
+  if(searchInput.value === ''){
+    console.log("No input")
+    return;
+  }
+  
+
+}
