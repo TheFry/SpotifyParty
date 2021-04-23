@@ -6,23 +6,33 @@
   <link rel="stylesheet" href="./css/main.css">
   <title>Let's Party!</title>
 </head>
-<body class="bg-dark">
-  <div class="container">
-    <div class="row align-items-center h-100">
-      <div class="col text-center bg-dark">
-        <div class="container bg-primary p-5 rounded-pill">
-          <div class="row">
-            <div class="col">
-              <h1>Let's Party!</h1>
+<body>
+  <div class="container-fluid">
+    <div class="row align-items-center bg-dark" id="top-bar">
+      <div class="col-1">
+        <img src="/img/Spotify_Icon_RGB_Green.png" alt="" class="img-fluid m-2" style="max-height: 70; min-height: 50; min-width: 50;">
+      </div>
+      <div class="col text-end text-light">
+        <h1>Spotify Party</h1>
+      </div>
+    </div>
+    <div class="container" id="body-container">
+      <div class="row align-items-center h-100">
+        <div class="col text-center">
+          <div class="container border border-primary rounded-3 p-5 w-75">
+            <div class="row">
+              <div class="col">
+                <h1>Let's Party!</h1>
+              </div>
             </div>
-          </div>
-          <div class="row">
-            <a id="share-link" class="text-dark"></a>
+            <div class="row">
+              <a id="share-link" class="text-dark"></a>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-  <script src="./js/share.js"></script>
+    <script src="./js/share.js"></script>
 </body>
 </html>
