@@ -5,6 +5,7 @@ const express = require('express');
 const spotifyApi = require('spotify-web-api-node');
 const credentials = require('./credentials.js');
 const SpotifyWebApi = require('spotify-web-api-node');
+const { dir } = require('console');
 
 const app = express();
 const PORT = 8888;
@@ -45,13 +46,14 @@ function getTokens(res, req, next){
       spotify.setRefreshToken(data.body['refresh_token']);
       res.locals.spotify = spotify;
       next();
+
     },
-    function(err)
+    (err) =>
     {
       console.log(err);
       res.send("err");
     }   
-  )
+  );
 };
 
 
@@ -69,7 +71,8 @@ function writeTokens(req, res, next){
     "acc": accTok,
     "ref": refTok
   }
-
+  console.log(accTok);
+  console.log(tokData);
   var tokStr = JSON.stringify(tokData);
   fs.writeFile(`${TOKEN_DIR}/${hash}`, tokStr, (err) =>{
     if(err){
@@ -82,12 +85,52 @@ function writeTokens(req, res, next){
 }
 
 
+function loadTokens(req, res, next){
+  var spotify = new spotifyApi({
+    clientId: credentials.CLIENT_ID,
+    clientSecret: credentials.clientSecret,
+    redirectUri: CALLBACK_URI
+  });
+  var userHash = req.query.id;
+  var search = req.query.q;
+
+  if(userHash === null || search === null){
+    res.status(400);
+    res.type('html');
+    res.send('Missing one or both parameters');
+  }
+  let fileStr = `${TOKEN_DIR}/${userHash}`;
+  if(!fs.existsSync(fileStr)){
+    res.status(418);
+    res.type('html');
+    res.send('Cannot find token');
+  }
+  let tokenData = JSON.parse(fs.readFileSync(fileStr));
+  console.log(typeof(tokenData['acc']));
+  try{
+    spotify.setAccessToken(tokenData.acc);
+    spotify.setRefreshToken(tokenData.ref);
+  }catch(err){
+    console.log(err);
+    res.status(418);
+    res.send('token err');
+  }
+  res.locals.spot = spotify;
+}
+
 // Express Server
 app.use("/play", (req, res, next) => 
 {
   res.redirect(`${URI}/play.html?id=${req.query.id}`);
 });
 
+
+app.get("/search",
+  (req, res, next) =>{
+    console.log('load tokens');
+    loadTokens(req, res, next);
+  }
+);
 
 // Recieves tokens from spotify
 app.use("/callback",

@@ -6,7 +6,6 @@ addEventListeners();
 function addEventListeners(){
   window.addEventListener('load', setLength);
   window.addEventListener('resize', setLength);
-  startBtn.addEventListener('click', startPartyBtn);
 }
 
 function setLength(e){

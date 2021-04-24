@@ -10,6 +10,7 @@ function addEventListeners(){
 function searchNow(e){
   var urlParams = new URLSearchParams(window.location.search);
   var id;
+  var uri = 'search'
   if(urlParams.has('id')){
     id = urlParams.get('id');
   }else{
@@ -21,6 +22,10 @@ function searchNow(e){
     console.log("No input")
     return;
   }
+
+  fetch(`${uri}?id=${id}&q=${searchInput.value}`)
+    .then((res) => console.log(res))
+    .catch((err) => console.log(err))
   
 
 }
