@@ -22,11 +22,12 @@ function getAccess(res){
     redirectUri: CALLBACK_URI,
   });
 
-  const scopes = ['user-read-private', 'user-read-email'];
+  const scopes = ['user-read-private', 'user-read-email', 'user-modify-playback-state'];
   const state = crypto.randomInt(64);
   let authorizeURL = spotify.createAuthorizeURL(scopes, state);
   spotify = null;
   console.log(authorizeURL);
+  
   res.redirect(authorizeURL);
 }
 
@@ -106,7 +107,6 @@ function loadTokens(req, res, next){
     res.send('Cannot find token');
   }
   let tokenData = JSON.parse(fs.readFileSync(fileStr));
-  console.log(typeof(tokenData['acc']));
   try{
     spotify.setAccessToken(tokenData.acc);
     spotify.setRefreshToken(tokenData.ref);
@@ -115,8 +115,55 @@ function loadTokens(req, res, next){
     res.status(418);
     res.send('token err');
   }
-  res.locals.spot = spotify;
+  res.locals.spotify = spotify;
+  next();
 }
+
+
+function searchTrack(req, res, next){
+  spotify = res.locals.spotify;
+
+  if(req.query.q === null || res.locals.spotify === null){
+    console.log('ERROR: id and or search query not provided');
+    res.status(418);
+    res.send('search error');
+  }
+
+  spotify.searchTracks(req.query.q, { limit: 10 })
+  .then((data) => {
+    let tracks = data.body.tracks.items;
+    if(tracks === null){
+      console.log('Cannot get items from response');
+      res.status(418);
+      res.send('search error');
+    }
+    res.type('json');
+    res.json(tracks);
+  })
+  .catch((err) => {
+    console.log(`Search tracks 130\n${err}`);
+    res.status(418);
+    res.send('search error');
+  })
+}
+
+
+// function addTrack(req, res, next){
+//   if(req.query.track === null || res.locals.spotify === null){
+//     console.log('ERROR: track and or id not provided');
+//     res.status(418);
+//     res.send('search error');
+//   }
+//   spotify.addTrack(`spotify:track:${req.query.track}`)
+//   .then(data => {
+//     console.log(data);
+//   })
+//   .catch(err => {
+//     console.log(err);
+//   })
+
+// }
+
 
 // Express Server
 app.use("/play", (req, res, next) => 
@@ -126,21 +173,31 @@ app.use("/play", (req, res, next) =>
 
 
 app.get("/search",
-  (req, res, next) =>{
-    console.log('load tokens');
+  (req, res, next) => {
     loadTokens(req, res, next);
+  },
+  (req, res, next) => {
+    searchTrack(req, res, next)
+  }
+);
+
+
+app.get("/addTrack",
+  (req, res, next) => {
+    loadTokens(req, res, next);
+  },
+  (req, res, next) => {
+    addTrack(req, res, next);
   }
 );
 
 // Recieves tokens from spotify
 app.use("/callback",
   (req, res, next) => {
-    console.log("Get tokens");
     getTokens(res, req, next);
   },
 
   (req, res, next) => {
-    console.log("Get email")
     spotify = res.locals.spotify;
     spotify.getMe().then(
       (data) =>
@@ -157,7 +214,6 @@ app.use("/callback",
   },
 
   (req, res, next) => {
-    console.log("Write tokens");
     writeTokens(req, res, next);
   }
 );
