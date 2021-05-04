@@ -2,6 +2,7 @@ const searchBtn = document.querySelector('#search-btn');
 const searchInput = document.querySelector('#search-input');
 const main = document.querySelector('#body-container');
 
+
 addEventListeners();
 function addEventListeners(){
   searchBtn.addEventListener('click', searchNow);
@@ -83,7 +84,7 @@ function searchNow(e){
         col.classList = 'col-1'
         col.appendChild(btn);
         row.appendChild(col);
-        btn.addEventListener('mouseup', addTrack)
+        // btn.addEventListener('mouseup', addTrack)
         main.appendChild(row);
       });
 
