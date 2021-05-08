@@ -15,6 +15,7 @@ function searchNow(e){
   var id;
   var uri = 'search'
 
+  searchBtn.blur();
   if(urlParams.has('id')){
     id = urlParams.get('id');
   }else{
@@ -25,7 +26,6 @@ function searchNow(e){
     console.log("No input")
     return;
   }
-
 
   fetch(`${uri}?id=${id}&q=${searchInput.value}`)
     .then((res) => {
@@ -38,19 +38,19 @@ function searchNow(e){
       }
       // Remove any existing search results from DOM
       let existingEntries = document.getElementsByClassName('search-item');
-      console.log(existingEntries);
       for(i = 0; i < existingEntries.length; i){
         existingEntries[i].remove();
       }
-      
+
       data.forEach((track, index) => {
-        console.log(track);
+        
         // Add track row and name column to DOM
         let row = document.createElement('div');
         let col = document.createElement('div');
         let btn = document.createElement('button');
         btn.innerText = 'Add';
         row.classList = 'row search-item p-3 align-items-center ';
+        btn.setAttribute('trackId', track.id);
 
         if(index % 2 === 0){
           row.classList += 'bg-light ';
@@ -80,11 +80,10 @@ function searchNow(e){
         row.appendChild(col);
         // Add button column
         col = document.createElement('div');
-        
         col.classList = 'col-1'
         col.appendChild(btn);
         row.appendChild(col);
-        // btn.addEventListener('mouseup', addTrack)
+        btn.addEventListener('mouseup', addTrack);
         main.appendChild(row);
       });
 
@@ -93,18 +92,21 @@ function searchNow(e){
 }
 
 
-// function addTrack(e){
-//   var urlParams = new URLSearchParams(window.location.search);
-//   var id;
-//   var uri = 'addTrack';
+function addTrack(e){
+  var urlParams = new URLSearchParams(window.location.search);
+  var id = '';
+  var track = e.target.attributes.trackid.value;
+  var uri = 'addTrack';
 
-//   if(urlParams.has('id')){
-//     id = urlParams.get('id');
-//   }else{
-//     console.log("No id parmater");
-//     return;
-//   }
+  if(urlParams.has('id')){
+    id = urlParams.get('id');
+  }else{
+    console.log("No id parmater");
+    return;
+  }  
 
-//   fetch(`${uri}?id=${id}&q=${searchInput.value}`)
-
-// }
+  fetch(`${uri}?id=${id}&q=${track}`
+  ).then((data) =>{
+    return data.text();
+  }).then(text => { console.log(text) });
+}

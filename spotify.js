@@ -1,8 +1,10 @@
+'use strict'
 const path = require('path');
 var fs = require('fs');
 const crypto=require('crypto');
 const spotifyApi = require('spotify-web-api-node');
 const credentials = require('./credentials.js');
+const fetch = require('node-fetch');
 
 const PORT = 8888;
 const URI="http://localhost:" + PORT;
@@ -18,9 +20,9 @@ function getAccess(res){
     redirectUri: CALLBACK_URI,
   });
 
-  const scopes = ['user-read-private', 'user-read-email', 'user-modify-playback-state'];
+  const scopes = ['user-read-private', 'user-read-email', 'user-read-playback-state', 'user-modify-playback-state'];
   const state = crypto.randomInt(64);
-  let authorizeURL = spotify.createAuthorizeURL(scopes, state);
+  var authorizeURL = spotify.createAuthorizeURL(scopes, state);
   spotify = null;
   console.log(authorizeURL);
   
@@ -35,7 +37,7 @@ function getTokens(res, req, next){
     redirectUri: CALLBACK_URI,
   });
 
-  accessCode = req.query.code;
+  var accessCode = req.query.code;
   spotify.authorizationCodeGrant(accessCode).then(
     (data) =>
     {
@@ -55,7 +57,7 @@ function getTokens(res, req, next){
 
 
 function writeTokens(req, res, next){
-  spotify = res.locals.spotify;
+  var spotify = res.locals.spotify;
   var accTok = spotify.getAccessToken();
   var refTok = spotify.getRefreshToken();
   var hash = crypto.createHash('sha256');
@@ -90,7 +92,6 @@ function loadTokens(req, res, next){
   });
   var userHash = req.query.id;
   var search = req.query.q;
-
   if(userHash === null || search === null){
     res.status(400);
     res.type('html');
@@ -117,7 +118,7 @@ function loadTokens(req, res, next){
 
 
 function searchTrack(req, res, next){
-  spotify = res.locals.spotify;
+  var spotify = res.locals.spotify;
   if(req.query.q === null || res.locals.spotify === null){
     console.log('ERROR: id and or search query not provided');
     res.status(418);
@@ -143,21 +144,49 @@ function searchTrack(req, res, next){
 }
 
 
-// function addTrack(req, res, next){
-//   if(req.query.track === null || res.locals.spotify === null){
-//     console.log('ERROR: track and or id not provided');
-//     res.status(418);
-//     res.send('search error');
-//   }
-//   spotify.addTrack(`spotify:track:${req.query.track}`)
-//   .then(data => {
-//     console.log(data);
-//   })
-//   .catch(err => {
-//     console.log(err);
-//   })
+// For some reason spotify node library doesnt include adding to queue
+// so we must use the generic spotify web api
+function addTrack(req, expressRes, next){
+  const spotify = expressRes.locals.spotify;
+  const track = req.query.q;
+  var uri = ""
+  var successCode = 204;
 
-// }
+  // Check that query params actually exist
+  if(track === null || spotify === null){
+    console.log('ERROR: track and or id not provided');
+    expressRes.status(418);
+    expressRes.send('search error');
+  }
 
+  uri = encodeURI(`https://api.spotify.com/v1/me/player/queue?uri=spotify:track:${track}`);
 
-module.exports = { searchTrack, loadTokens, writeTokens, getTokens, getAccess};
+  fetch(uri, {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${spotify.getAccessToken()}`
+    }
+  }).then((res) => { 
+    expressRes.status(res.status);
+    if(res.status === successCode){
+      return null;
+    }else{
+      return(res.json());
+    }
+  }).then(data => {
+    if(!data){
+      expressRes.send('ok');
+    }
+    else{
+      expressRes.send(data.error.reason);
+    }
+    
+  }).catch(e => {
+    console.log(`Error adding to queue: ${e}`);
+    expressRes.send(e.toString());
+  });
+}
+
+module.exports = { searchTrack, loadTokens, writeTokens, getTokens, getAccess, addTrack };

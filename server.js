@@ -1,12 +1,10 @@
+'use strict'
 const path = require('path');
 const express = require('express');
 const spotifyApi = require('./spotify.js');
-const credentials = require('./credentials.js');
 const app = express();
 const PORT = 8888;
 const URI="http://localhost:" + PORT;
-
-
 
 
 app.use("/play", (req, res, next) => 
@@ -34,6 +32,7 @@ app.get("/addTrack",
   }
 );
 
+
 // Recieves tokens from spotify
 app.use("/callback",
   (req, res, next) => {
@@ -41,7 +40,7 @@ app.use("/callback",
   },
 
   (req, res, next) => {
-    spotify = res.locals.spotify;
+    var spotify = res.locals.spotify;
     spotify.getMe().then(
       (data) =>
       {
@@ -60,6 +59,7 @@ app.use("/callback",
     spotifyApi.writeTokens(req, res, next);
   }
 );
+
 
 app.use("/start",
   (req, res, next) => {
