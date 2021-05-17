@@ -2,6 +2,10 @@ const searchBtn = document.querySelector('#search-btn');
 const searchInput = document.querySelector('#search-input');
 const main = document.querySelector('#body-container');
 
+const ADD_SUCCESS = 204;
+const ADD_NODEVICE = 404;
+const ADD_NOPREMIUM = 403;
+
 
 addEventListeners();
 function addEventListeners(){
@@ -97,7 +101,7 @@ function addTrack(e){
   var id = '';
   var track = e.target.attributes.trackid.value;
   var uri = 'addTrack';
-
+  console.log(e);
   if(urlParams.has('id')){
     id = urlParams.get('id');
   }else{
@@ -107,6 +111,16 @@ function addTrack(e){
 
   fetch(`${uri}?id=${id}&q=${track}`
   ).then((data) =>{
-    return data.text();
-  }).then(text => { console.log(text) });
+    return data.json();
+  }).then(json => { 
+    // Succesful add
+    if(json.status == 204){
+      e.target.style.visibility = 'hidden';
+    }else if(json.status == 404){
+      alert("I can't find a device to play on. Start playing some music on the host first!");
+    }else if(json.status == 403){
+      alert("Host doesn't have premium!");
+      window.open("http://localhost:8888")
+    }
+  });
 }

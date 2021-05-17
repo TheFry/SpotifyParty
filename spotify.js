@@ -12,6 +12,8 @@ const CALLBACK_URI = URI + "/callback"
 const SHARE_URI = URI + "/share.html?id="
 const TOKEN_DIR = "./tokens"
 
+const ADD_SUCCESS = 204;
+
 
 function getAccess(res){
   var spotify = new spotifyApi({
@@ -152,6 +154,11 @@ function addTrack(req, expressRes, next){
   var uri = ""
   var successCode = 204;
 
+  var replyJSON = {
+    status: 'null',
+    reason: 'null'
+  }
+
   // Check that query params actually exist
   if(track === null || spotify === null){
     console.log('ERROR: track and or id not provided');
@@ -169,19 +176,21 @@ function addTrack(req, expressRes, next){
       'Authorization': `Bearer ${spotify.getAccessToken()}`
     }
   }).then((res) => { 
-    expressRes.status(res.status);
-    if(res.status === successCode){
-      return null;
-    }else{
-      return(res.json());
-    }
+    replyJSON.status = res.status;
+    if(res.status != successCode){ return(res.json()); }
+    else{ return null };
+    
   }).then(data => {
-    if(!data){
-      expressRes.send('ok');
+    if(replyJSON.status != successCode){
+      expressRes.status(418)
+      replyJSON.reason = data.error.reason;
+      expressRes.send(replyJSON);
+    }else{
+      expressRes.status(200)
+      replyJSON.reason = 'SUCCESS';
+      expressRes.send(replyJSON);
     }
-    else{
-      expressRes.send(data.error.reason);
-    }
+
     
   }).catch(e => {
     console.log(`Error adding to queue: ${e}`);
