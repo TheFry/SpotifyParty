@@ -116,8 +116,10 @@ function addTrack(e){
     // Succesful add
     if(json.status == 204){
       e.target.style.visibility = 'hidden';
+    // No device
     }else if(json.status == 404){
       alert("I can't find a device to play on. Start playing some music on the host first!");
+    // No premium
     }else if(json.status == 403){
       alert("Host doesn't have premium!");
       window.open("http://localhost:8888")
