@@ -6,6 +6,7 @@ const ADD_SUCCESS = 204;
 const ADD_NODEVICE = 404;
 const ADD_NOPREMIUM = 403;
 
+var isMobile = window.matchMedia('(max-width: 576px)');
 
 addEventListeners();
 function addEventListeners(){
@@ -57,19 +58,19 @@ function searchNow(e){
         btn.setAttribute('trackId', track.id);
 
         if(index % 2 === 0){
-          row.classList += 'bg-light ';
-          btn.classList += 'btn btn-outline-dark ';
+          row.classList += 'bg-light';
+          btn.classList += 'btn btn-outline-dark';
         }else{
-          row.classList += 'bg-dark text-light ';
-          btn.classList += 'btn btn-outline-light ';
+          row.classList += 'bg-dark text-light';
+          btn.classList += 'btn btn-outline-light';
         }
 
-        col.classList = 'col ';
+        col.classList = 'col-sm item-col d-flex ';
         col.innerText = track.name;
         row.appendChild(col);
         // Add artist column to DOM
         col = document.createElement('div');
-        col.classList = 'col align-middle'
+        col.classList = 'col-sm item-col d-flex'
         let length = track.artists.length;
         // There can be multiple artists so iterate through
         track.artists.forEach((artist, index) => {  
@@ -79,12 +80,16 @@ function searchNow(e){
         row.appendChild(col);
         // Add album column to DOM
         col = document.createElement('div');
-        col.classList = 'col'
+        col.classList = 'col-sm item-col d-flex '
         col.textContent = track.album.name;
         row.appendChild(col);
         // Add button column
         col = document.createElement('div');
-        col.classList = 'col-1'
+        if(isMobile.matches){
+          col.classList = 'col d-flex justify-content-center'
+        }else{
+          col.classList = 'col d-flex justify-content-end'
+        }
         col.appendChild(btn);
         row.appendChild(col);
         btn.addEventListener('mouseup', addTrack);
