@@ -11,11 +11,19 @@ var isMobile = window.matchMedia('(max-width: 576px)');
 addEventListeners();
 function addEventListeners(){
   searchBtn.addEventListener('click', searchNow);
+  document.addEventListener('keydown', checkKey);
+}
+
+
+function checkKey(e){
+  if(e.key === 'Enter'){
+    searchNow();
+  }
 }
 
 
 // Get first ten search results from server
-function searchNow(e){
+function searchNow(){
   var urlParams = new URLSearchParams(window.location.search);
   var id;
   var uri = 'search'
