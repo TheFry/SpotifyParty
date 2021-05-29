@@ -25,6 +25,7 @@ function checkKey(e){
 // Get first ten search results from server
 function searchNow(){
   var urlParams = new URLSearchParams(window.location.search);
+  
   var id;
   var uri = 'search'
 
@@ -55,8 +56,7 @@ function searchNow(){
         existingEntries[i].remove();
       }
 
-      data.forEach((track, index) => {
-        
+      data.forEach((track, index) => {   
         // Add track row and name column to DOM
         let row = document.createElement('div');
         let col = document.createElement('div');
@@ -71,6 +71,10 @@ function searchNow(){
         }else{
           row.classList += 'bg-dark text-light';
           btn.classList += 'btn btn-outline-light';
+        }
+
+        if(isMobile.matches){
+          btn.classList += ' w-100'
         }
 
         col.classList = 'col-sm item-col d-flex ';
@@ -94,7 +98,7 @@ function searchNow(){
         // Add button column
         col = document.createElement('div');
         if(isMobile.matches){
-          col.classList = 'col d-flex justify-content-center'
+          col.classList = 'col mt-3 d-flex justify-content-center'
         }else{
           col.classList = 'col d-flex justify-content-end'
         }
@@ -105,7 +109,7 @@ function searchNow(){
       });
 
     })
-    .catch((err) => console.log(err))
+    .catch((err) => console.log(err));
 }
 
 
@@ -135,7 +139,8 @@ function addTrack(e){
     // No premium
     }else if(json.status == 403){
       alert("Host doesn't have premium!");
-      window.open("http://localhost:8888")
+      let url = `http://${location.hostname}:${location.port}`
+      window.open(url, '_self');
     }
   });
 }
