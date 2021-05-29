@@ -18,6 +18,9 @@ app.get("/search",
     spotifyApi.loadTokens(req, res, next);
   },
   (req, res, next) => {
+    spotifyApi.refreshTokens(req, res, next);
+  },
+  (req, res, next) => {
     spotifyApi.searchTrack(req, res, next);
   }
 );

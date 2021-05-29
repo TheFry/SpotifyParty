@@ -86,10 +86,32 @@ function writeTokens(req, res, next){
 }
 
 
+function refreshTokens(req, res, next){
+  var spotify = res.locals.spotify;
+  var replyJSON = {
+    status: 'null',
+    reason: 'null'
+  }
+  spotify.refreshAccessToken()
+  .then((data) => {
+    spotify.setAccessToken(data.body['access_token']);
+    next();
+  },
+  (err) => {
+    console.log('err test')
+    console.log('Could not refresh access token', err);
+    res.status(418);
+    replyJSON.status = 418;
+    replyJSON.reason = 'bad refresh';
+    res.send(replyJSON);
+  });
+}
+
+
 function loadTokens(req, res, next){
   var spotify = new spotifyApi({
     clientId: credentials.CLIENT_ID,
-    clientSecret: credentials.clientSecret,
+    clientSecret: credentials.CLIENT_SECRET,
     redirectUri: CALLBACK_URI
   });
   var userHash = req.query.id;
@@ -121,10 +143,17 @@ function loadTokens(req, res, next){
 
 function searchTrack(req, res, next){
   var spotify = res.locals.spotify;
+  var replyJSON = {
+    status: 'null',
+    reason: 'null'
+  }
+
   if(req.query.q === null || res.locals.spotify === null){
     console.log('ERROR: id and or search query not provided');
     res.status(418);
-    res.send('search error');
+    replyJSON.status = 418
+    replyJSON.reason = 'id and or search query not provided'
+    res.send(replyJSON);
   }
 
   spotify.searchTracks(req.query.q, { limit: 10 })
@@ -157,7 +186,7 @@ function addTrack(req, expressRes, next){
   var replyJSON = {
     status: 'null',
     reason: 'null'
-  }
+  };
 
   // Check that query params actually exist
   if(track === null || spotify === null){
@@ -167,6 +196,12 @@ function addTrack(req, expressRes, next){
   }
 
   uri = encodeURI(`https://api.spotify.com/v1/me/player/queue?uri=spotify:track:${track}`);
+  if(refreshTokens(spotify) === 1){
+    console.log('Could not refresh access token');
+    replyJSON.status('418');
+    replyJSON.reason('Could not refresh access token');
+    expressRes.send(replyJSON);
+  }
 
   fetch(uri, {
     method: 'POST',
@@ -198,4 +233,4 @@ function addTrack(req, expressRes, next){
   });
 }
 
-module.exports = { searchTrack, loadTokens, writeTokens, getTokens, getAccess, addTrack };
+module.exports = { searchTrack, loadTokens, writeTokens, refreshTokens, getTokens, getAccess, addTrack };
