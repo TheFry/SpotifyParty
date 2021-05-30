@@ -1,3 +1,9 @@
+const host = 'https://spotify.thefry.dev';
+
+// Outer facing port
+// Set to none if using 80 or 443
+// Add leading : if using any other port
+const port = '';
 
 const navbar = document.querySelector('#top-bar');
 const loginRow = document.querySelector('#loginRow');
@@ -10,6 +16,9 @@ addEventListeners();
 function addEventListeners(){
   window.addEventListener('load', setSize);
   window.addEventListener('resize', setSize);
+  startBtn.addEventListener('click', e => {
+    window.location.replace(`${host}${port}`);
+  });
 }
 
 function setSize(e){

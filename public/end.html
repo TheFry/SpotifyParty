@@ -2,9 +2,9 @@
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scaleable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="./css/main.css">
-  <title>Spotify Party</title>
+  <title>End Party</title>
 </head>
 <body class="bg-light">
   <div class="container-fluid bg-dark" id="main">
@@ -17,17 +17,13 @@
       </div>
     </div>
 
-    <div class="row bg-light align-items-center text-center" id="loginRow">
+    <div class="row bg-light align-items-center text-center" id="logoutRow">
       <div class="col">
-        <div id="button-container" class="container p-5 rounded-3">
-          <div class="row p-5">
-            <div class="col">
-              <button class="btn start-button btn-primary btn-lg w-100">Start a Party</button>
-            </div>
-          </div>
-          <div class="row p-5 pt-1">
-            <div class="col">
-              <button id="end-btn" class="btn btn-outline-dark btn-sm w-75">End a Party</button>
+        <div id="button-container" class="container p-5">
+          <div class="col">
+            <div class="input-group">
+              <input type="text" id="email-input" class="form-control" placeholder="Enter Email">
+              <button id="end-btn" class="btn btn-primary btn-lg w-100 mt-5">End Party</button>
             </div>
           </div>
         </div>
@@ -35,6 +31,6 @@
     </div>
   </div>
 
-  <script src="./js/index.js"></script>
+  <script src="./js/end.js"></script>
 </body>
 </html>
