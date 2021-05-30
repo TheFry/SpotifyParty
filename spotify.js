@@ -8,7 +8,7 @@ const credentials = require('./credentials.js');
 const globals = require('./globals.js');
 
 
-const URI= `${globals.hostname}${globals.port}`;
+const URI = `${globals.host}${globals.port}`;
 const CALLBACK_URI = URI + "/callback";
 const SHARE_URI = URI + "/share.html?id=";
 const TOKEN_DIR = "./tokens";
