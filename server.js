@@ -2,13 +2,19 @@
 const path = require('path');
 const express = require('express');
 const spotifyApi = require('./spotify.js');
+const globals = require('./globals.js');
+
 const app = express();
-const PORT = 8888;
-const URI="http://localhost:" + PORT;
+const PORT = globals.port;
+const URI = `${globals.host}${PORT}`;
 
 
-app.use("/play", (req, res, next) => 
-{
+app.use("/end", (req, res, next) => {
+  res.redirect(`${URI}/end.html`);
+});
+
+
+app.use("/play", (req, res, next) => {
   res.redirect(`${URI}/play.html?id=${req.query.id}`);
 });
 
@@ -29,6 +35,9 @@ app.get("/search",
 app.get("/addTrack",
   (req, res, next) => {
     spotifyApi.loadTokens(req, res, next);
+  },
+  (req, res, next) => {
+    spotifyApi.refreshTokens(req, res, next);
   },
   (req, res, next) => {
     spotifyApi.addTrack(req, res, next);
@@ -73,4 +82,4 @@ app.use("/start",
 
 
 app.use("/", express.static(path.join(__dirname, 'public')));
-app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+app.listen(globals.bindPort, () => console.log(`Server started on ${globals.host} with port ${globals.bindPort}`));

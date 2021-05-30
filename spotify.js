@@ -2,16 +2,16 @@
 const path = require('path');
 var fs = require('fs');
 const crypto=require('crypto');
+const fetch = require('node-fetch');
 const spotifyApi = require('spotify-web-api-node');
 const credentials = require('./credentials.js');
-const fetch = require('node-fetch');
+const globals = require('./globals.js');
 
-const PORT = 8888;
-const URI="http://localhost:" + PORT;
-const CALLBACK_URI = URI + "/callback"
-const SHARE_URI = URI + "/share.html?id="
-const TOKEN_DIR = "./tokens"
 
+const URI= `${globals.hostname}${globals.port}`;
+const CALLBACK_URI = URI + "/callback";
+const SHARE_URI = URI + "/share.html?id=";
+const TOKEN_DIR = "./tokens";
 const ADD_SUCCESS = 204;
 
 
@@ -27,7 +27,6 @@ function getAccess(res){
   var authorizeURL = spotify.createAuthorizeURL(scopes, state);
   spotify = null;
   console.log(authorizeURL);
-  
   res.redirect(authorizeURL);
 }
 
