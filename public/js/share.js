@@ -16,7 +16,7 @@ function addEventListeners(){
 
 function setLink(e){
   console.log('set')
-  var myUrl = `${host}${[port/play]}` + window.location.search;
+  var myUrl = `${host}${port}/play` + window.location.search;
 
   linkElm.setAttribute('href', myUrl);
   linkElm.innerHTML = myUrl;
