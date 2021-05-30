@@ -7,17 +7,18 @@ const port = '';
 
 const navbar = document.querySelector('#top-bar');
 const loginRow = document.querySelector('#loginRow');
-const startBtn = document.querySelector('#start-btn');
+const startBtn = document.querySelector('#start-button');
 const endBtn = document.querySelector('#end-btn')
 const btnContainer = document.querySelector('#button-container')
 var isMobile = window.matchMedia('(max-width: 576px)');
+
 
 addEventListeners();
 function addEventListeners(){
   window.addEventListener('load', setSize);
   window.addEventListener('resize', setSize);
   startBtn.addEventListener('click', e => {
-    window.location.replace(`${host}${port}`);
+    window.location.replace(`${host}${port}/start`);
   });
 }
 
