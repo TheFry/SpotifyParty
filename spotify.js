@@ -196,13 +196,6 @@ function addTrack(req, expressRes, next){
   }
 
   uri = encodeURI(`https://api.spotify.com/v1/me/player/queue?uri=spotify:track:${track}`);
-  if(refreshTokens(spotify) === 1){
-    console.log('Could not refresh access token');
-    replyJSON.status('418');
-    replyJSON.reason('Could not refresh access token');
-    expressRes.send(replyJSON);
-  }
-
   fetch(uri, {
     method: 'POST',
     headers: {
