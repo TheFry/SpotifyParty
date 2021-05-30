@@ -1,4 +1,9 @@
-URL="http://localhost:8888"
+const host = 'https://spotify.thefry.dev';
+
+// Outer facing port
+// Set to none if using 80 or 443
+// Add leading : if using any other port
+const port = '';
 const navbar = document.querySelector('#top-bar');
 const linkElm = document.querySelector('#share-link');
 const bodyContainer = document.querySelector('#body-container');
@@ -11,7 +16,7 @@ function addEventListeners(){
 
 function setLink(e){
   console.log('set')
-  var myUrl = URL + "/play" + window.location.search;
+  var myUrl = `${host}${[port/play]}` + window.location.search;
 
   linkElm.setAttribute('href', myUrl);
   linkElm.innerHTML = myUrl;
