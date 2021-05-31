@@ -1,11 +1,11 @@
 'use strict'
 const path = require('path');
 var fs = require('fs');
-const crypto=require('crypto');
 const fetch = require('node-fetch');
 const spotifyApi = require('spotify-web-api-node');
 const credentials = require('./credentials.js');
 const globals = require('./globals.js');
+const { randomInt, createHash } = require('crypto');
 
 
 const URI = `${globals.host}${globals.port}`;
@@ -23,7 +23,7 @@ function getAccess(res){
   });
 
   const scopes = ['user-read-private', 'user-read-email', 'user-read-playback-state', 'user-modify-playback-state'];
-  const state = crypto.randomInt(64);
+  const state = randomInt(64);
   var authorizeURL = spotify.createAuthorizeURL(scopes, state);
   spotify = null;
   console.log(authorizeURL);
@@ -57,16 +57,16 @@ function getTokens(res, req, next){
 };
 
 
-function writeTokens(req, res, next){
+function writeTokens(salt, req, res, next){
   var spotify = res.locals.spotify;
   var accTok = spotify.getAccessToken();
   var refTok = spotify.getRefreshToken();
-  var hash = crypto.createHash('sha256');
   var returnURL = SHARE_URI;
 
-  hash.update(res.locals.email);
-  hash = hash.digest("hex");
-  returnURL += hash;
+  let digest = createHash('sha256').update(res.locals.email).digest('hex');
+  digest = createHash('sha256').update(digest).update(salt).digest('hex');
+  returnURL += digest;
+
   var tokData = {
     "acc": accTok,
     "ref": refTok
@@ -74,7 +74,7 @@ function writeTokens(req, res, next){
   console.log(accTok);
   console.log(tokData);
   var tokStr = JSON.stringify(tokData);
-  fs.writeFile(`${TOKEN_DIR}/${hash}`, tokStr, (err) =>{
+  fs.writeFile(`${TOKEN_DIR}/${digest}`, tokStr, (err) =>{
     if(err){
       console.log("Could not write token");
       console.log(err);

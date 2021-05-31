@@ -1,9 +1,12 @@
 'use strict'
+require('crypto');
 const path = require('path');
 const express = require('express');
 const spotifyApi = require('./spotify.js');
 const globals = require('./globals.js');
+const { createHash, randomBytes } = require('crypto');
 
+const salt = randomBytes(8);
 const app = express();
 const PORT = globals.port;
 const URI = `${globals.host}${PORT}`;
@@ -68,7 +71,7 @@ app.use("/callback",
   },
 
   (req, res, next) => {
-    spotifyApi.writeTokens(req, res, next);
+    spotifyApi.writeTokens(salt, req, res, next);
   }
 );
 
