@@ -43,6 +43,10 @@ function searchNow(){
 
   fetch(`${uri}?id=${id}&q=${searchInput.value}`)
     .then((res) => {
+      if(res.status !== 200){
+        console.log('i am a teapot');
+        return;
+      }
       return res.json();
     })
     .then((data) => {
