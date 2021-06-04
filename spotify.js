@@ -5,7 +5,8 @@ const fetch = require('node-fetch');
 const spotifyApi = require('spotify-web-api-node');
 const credentials = require('./credentials.js');
 const globals = require('./globals.js');
-const { randomInt, createHash } = require('crypto');
+const { randomInt, createHash, Hash } = require('crypto');
+const { ENOENT } = require('constants');
 
 
 const URI = `${globals.host}${globals.port}`;
@@ -63,16 +64,17 @@ function writeTokens(salt, req, res, next){
   var refTok = spotify.getRefreshToken();
   var returnURL = SHARE_URI;
 
-  let digest = createHash('sha256').update(res.locals.email).digest('hex');
-  digest = createHash('sha256').update(digest).update(salt).digest('hex');
+  // Return the hashed email as the id
+  let digest = createHash('sha256').update(res.locals.email || '0').digest('hex');
   returnURL += digest;
+  // Hash one more time with salt and store it
+  digest = createHash('sha256').update(digest).update(salt).digest('hex');
 
   var tokData = {
     "acc": accTok,
     "ref": refTok
   }
-  console.log(accTok);
-  console.log(tokData);
+
   var tokStr = JSON.stringify(tokData);
   fs.writeFile(`${TOKEN_DIR}/${digest}`, tokStr, (err) =>{
     if(err){
@@ -107,24 +109,27 @@ function refreshTokens(req, res, next){
 }
 
 
-function loadTokens(req, res, next){
+function loadTokens(salt, req, res, next){
   var spotify = new spotifyApi({
     clientId: credentials.CLIENT_ID,
     clientSecret: credentials.CLIENT_SECRET,
     redirectUri: CALLBACK_URI
   });
-  var userHash = req.query.id;
+  const userHash = req.query.id;
+  const tokenId = createHash('sha256').update(userHash).update(salt).digest('hex');
   var search = req.query.q;
   if(userHash === null || search === null){
     res.status(400);
     res.type('html');
     res.send('Missing one or both parameters');
+    return(1);
   }
-  let fileStr = `${TOKEN_DIR}/${userHash}`;
+  let fileStr = `${TOKEN_DIR}/${tokenId}`;
   if(!fs.existsSync(fileStr)){
     res.status(418);
     res.type('html');
     res.send('Cannot find token');
+    return(1);
   }
   let tokenData = JSON.parse(fs.readFileSync(fileStr));
   try{
@@ -150,26 +155,35 @@ function searchTrack(req, res, next){
   if(req.query.q === null || res.locals.spotify === null){
     console.log('ERROR: id and or search query not provided');
     res.status(418);
-    replyJSON.status = 418
-    replyJSON.reason = 'id and or search query not provided'
+    replyJSON.status = 418;
+    replyJSON.reason = 'id and or search query not provided';
     res.send(replyJSON);
   }
-
-  spotify.searchTracks(req.query.q, { limit: 10 })
+  console.log('search');
+  spotify.searchTracks(req.query.q, { limit: 20 })
   .then((data) => {
     let tracks = data.body.tracks.items;
     if(tracks === null){
       console.log('Cannot get items from response');
+      replyJSON.status = 418;
+      replyJSON.reason = 'search error';
       res.status(418);
-      res.send('search error');
+      res.send(replyJSON);
+      return(1);
     }
+    console.log('test');
+    res.status(200);
     res.type('json');
-    res.json(tracks);
+    replyJSON.status = 200;
+    replyJSON.reason = 'success';
+    res.send(tracks);
   })
   .catch((err) => {
-    console.log(`Search tracks 130\n${err}`);
+    console.log(`Search tracks\n${err}`);
     res.status(418);
-    res.send('search error');
+    replyJSON.status = 418;
+    replyJSON.reason = 'internal error';
+    res.send(replyJSON);
   })
 }
 
@@ -225,4 +239,41 @@ function addTrack(req, expressRes, next){
   });
 }
 
-module.exports = { searchTrack, loadTokens, writeTokens, refreshTokens, getTokens, getAccess, addTrack };
+
+function logout(salt, req, res, next){
+  var id = req.query.id;
+   var replyJSON = {
+    status: 'null',
+    reason: 'null'
+  };
+
+  // Check that query params actually exist
+  if(id === null){
+    console.log('no logout id provided');
+    res.status(418);
+    res.send('search error');
+  }
+
+  id = createHash('sha256').update(id).update(salt).digest('hex');
+  try {
+    fs.unlinkSync(`${TOKEN_DIR}/${id}`);
+  } catch (err) {
+    if(err.code === ENOENT){
+      res.status(404);
+      replyJSON.status = 404;
+      replyJSON.reason = 'Entry not found';
+      res.send(replyJSON);
+      return(0)
+    }else{
+      console.log(`Could not remove token ${err.code}`);
+      res.status(418);
+      replyJSON.status = 418;
+      replyJSON.reason = err;
+      res.send(replyJSON);
+      return(1);
+    }
+  }
+  res.redirect(`${globals.host}${globals.port}`);
+}
+
+module.exports = { logout, searchTrack, loadTokens, writeTokens, refreshTokens, getTokens, getAccess, addTrack };

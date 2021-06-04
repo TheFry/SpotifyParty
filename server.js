@@ -4,7 +4,7 @@ const path = require('path');
 const express = require('express');
 const spotifyApi = require('./spotify.js');
 const globals = require('./globals.js');
-const { createHash, randomBytes } = require('crypto');
+const { randomBytes } = require('crypto');
 
 const salt = randomBytes(8);
 const app = express();
@@ -12,9 +12,15 @@ const PORT = globals.port;
 const URI = `${globals.host}${PORT}`;
 
 
+app.use("/logout", (req, res, next) => {
+  spotifyApi.logout(salt, req, res, next);
+});
+
+
 app.use("/end", (req, res, next) => {
   res.redirect(`${URI}/end.html`);
 });
+
 
 
 app.use("/play", (req, res, next) => {
@@ -24,7 +30,7 @@ app.use("/play", (req, res, next) => {
 
 app.get("/search",
   (req, res, next) => {
-    spotifyApi.loadTokens(req, res, next);
+    spotifyApi.loadTokens(salt, req, res, next);
   },
   (req, res, next) => {
     spotifyApi.refreshTokens(req, res, next);
@@ -37,7 +43,7 @@ app.get("/search",
 
 app.get("/addTrack",
   (req, res, next) => {
-    spotifyApi.loadTokens(req, res, next);
+    spotifyApi.loadTokens(salt, req, res, next);
   },
   (req, res, next) => {
     spotifyApi.refreshTokens(req, res, next);
