@@ -64,7 +64,6 @@ async function endParty(){
     console.log(data.status);
     if(data.status === 200){
       console.log('success');
-      resizeBy.
       return(0);
     }else if(data.status === 404){
       window.alert('Couldn\'t find a session with that email');
