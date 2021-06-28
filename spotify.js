@@ -189,7 +189,7 @@ async function searchTrack(req, res, next){
 
 // For some reason spotify node library doesnt include adding to queue
 // so we must use the generic spotify web api
-function addTrack(req, expressRes, next){
+async function addTrack(req, expressRes, next){
   const spotify = expressRes.locals.spotify;
   const track = req.query.q;
   var uri = ""
@@ -208,34 +208,31 @@ function addTrack(req, expressRes, next){
   }
 
   uri = encodeURI(`https://api.spotify.com/v1/me/player/queue?uri=spotify:track:${track}`);
-  fetch(uri, {
+  let addResponse = await(fetch(uri, {
     method: 'POST',
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${spotify.getAccessToken()}`
     }
-  }).then((res) => { 
-    replyJSON.status = res.status;
-    if(res.status != successCode){ return(res.json()); }
-    else{ return null };
-    
-  }).then(data => {
-    if(replyJSON.status != successCode){
-      expressRes.status(418)
-      replyJSON.reason = data.error.reason;
-      expressRes.send(replyJSON);
-    }else{
-      expressRes.status(200)
-      replyJSON.reason = 'SUCCESS';
-      expressRes.send(replyJSON);
-    }
-
-    
-  }).catch(e => {
-    console.log(`Error adding to queue: ${e}`);
-    expressRes.send(e.toString());
-  });
+  }));
+  replyJSON.status = addResponse.status;
+  if(addResponse.status === successCode) {
+    expressRes.status(200)
+    replyJSON.reason = 'SUCCESS';
+    expressRes.end(replyJSON);
+  }
+  try{
+    let data = await(addResponse.json());
+    if(!data.error.reason) { throw new ReferenceError('Property not found') };
+    expressRes.status(418)
+    replyJSON.reason = data.error.reason;
+    expressRes.send(replyJSON);
+  } catch(err) {
+    logError(err);
+    replyJSON.reason = 'internal server error';
+    expressRes.send(replyJSON);
+  }
 }
 
 
