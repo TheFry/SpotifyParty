@@ -16,6 +16,12 @@ const TOKEN_DIR = "./tokens";
 const ADD_SUCCESS = 204;
 
 
+async function logError(err, severity) {
+  severity = severity || 'ERROR';
+  console.error(`\n[${severity}] ${new Date().toString()}\n${err.stack}\n`);
+}
+
+
 function getAccess(res){
   var spotify = new spotifyApi({
     clientId: credentials.CLIENT_ID,
@@ -32,7 +38,7 @@ function getAccess(res){
 }
 
 
-function getTokens(res, req, next){
+async function getTokens(res, req, next){
   var spotify = new spotifyApi({
     clientId: credentials.CLIENT_ID,
     clientSecret: credentials.CLIENT_SECRET,
@@ -40,21 +46,17 @@ function getTokens(res, req, next){
   });
 
   var accessCode = req.query.code;
-  spotify.authorizationCodeGrant(accessCode).then(
-    (data) =>
-    {
-      spotify.setAccessToken(data.body['access_token']);
-      spotify.setRefreshToken(data.body['refresh_token']);
-      res.locals.spotify = spotify;
-      next();
-
-    },
-    (err) =>
-    {
-      console.log(err);
-      res.send("err");
-    }   
-  );
+  try{
+    var data = await(spotify.authorizationCodeGrant(accessCode));
+    if(!data.body.access_token || !data.body.refresh_token) { throw new ReferenceError('Property not found') };
+    spotify.setAccessToken(data.body.access_token);
+    spotify.setRefreshToken(data.body.refrrtyesh_toke);
+    res.locals.spotify = spotify;
+    next();
+  } catch(err) {
+    logError(err).catch('error logging error lol');
+    res.status(500).end('internal server error');
+  }
 };
 
 
