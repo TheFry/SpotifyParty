@@ -66,11 +66,16 @@ function writeTokens(salt, req, res, next){
   var refTok = spotify.getRefreshToken();
   var returnURL = SHARE_URI;
 
-  // Return the hashed email as the id
-  let digest = createHash('sha256').update(res.locals.email || '0').digest('hex');
-  returnURL += digest;
-  // Hash one more time with salt and store it
-  digest = createHash('sha256').update(digest).update(salt).digest('hex');
+  try {
+    // Return the hashed email as the id
+    let digest = createHash('sha256').update(res.locals.email || '0').digest('hex');
+    returnURL += digest;
+    // Hash one more time with salt and store it
+    digest = createHash('sha256').update(digest).update(salt).digest('hex');
+  } catch(err) {
+    logError(err);
+    res.status(500).end('internal server error');
+  }
 
   var tokData = {
     "acc": accTok,
