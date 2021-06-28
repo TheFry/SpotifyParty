@@ -93,25 +93,24 @@ function writeTokens(salt, req, res, next){
 }
 
 
-function refreshTokens(req, res, next){
+async function refreshTokens(req, res, next){
   var spotify = res.locals.spotify;
   var replyJSON = {
     status: 'null',
     reason: 'null'
   }
-  spotify.refreshAccessToken()
-  .then((data) => {
+  try {
+    data = await(spotify.refreshAccessToken());
     spotify.setAccessToken(data.body['access_token']);
     next();
-  },
-  (err) => {
+  } catch(err) {
     console.log('err test')
     console.log('Could not refresh access token', err);
     res.status(418);
     replyJSON.status = 418;
     replyJSON.reason = 'bad refresh';
     res.send(replyJSON);
-  });
+  }
 }
 
 
