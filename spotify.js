@@ -50,7 +50,7 @@ async function getTokens(res, req, next){
     var data = await(spotify.authorizationCodeGrant(accessCode));
     if(!data.body.access_token || !data.body.refresh_token) { throw new ReferenceError('Property not found') };
     spotify.setAccessToken(data.body.access_token);
-    spotify.setRefreshToken(data.body.refrrtyesh_toke);
+    spotify.setRefreshToken(data.body.refresh_token);
     res.locals.spotify = spotify;
     next();
   } catch(err) {
@@ -79,7 +79,7 @@ function writeTokens(salt, req, res, next){
 
   var tokData = {
     "acc": accTok,
-    "ref": refTok
+    "ref": refTok,
   }
 
   var tokStr = JSON.stringify(tokData);
@@ -95,6 +95,7 @@ function writeTokens(salt, req, res, next){
 
 async function refreshTokens(req, res, next){
   var spotify = res.locals.spotify;
+  var data;
   var replyJSON = {
     status: 'null',
     reason: 'null',
@@ -103,11 +104,10 @@ async function refreshTokens(req, res, next){
   try {
     data = await(spotify.refreshAccessToken());
     if(!data.body.access_token) { throw new ReferenceError('Property not found') };
-    spotify.setAccessToken(data.body['access_token']);
+    spotify.setAccessToken(data.body.access_token);
     next();
   } catch(err) {
     logError(err);
-    console.log('Could not refresh access token', err);
     res.status(418);
     replyJSON.status = 418;
     replyJSON.reason = 'bad refresh';
@@ -144,7 +144,7 @@ function loadTokens(salt, req, res, next){
     spotify.setAccessToken(tokenData.acc);
     spotify.setRefreshToken(tokenData.ref);
   } catch(err) {
-    console.log(err);
+    logError(err);
     res.status(418);
     res.end('token err');
   }
@@ -157,7 +157,7 @@ async function searchTrack(req, res, next){
   var spotify = res.locals.spotify;
   var replyJSON = {
     status: 'null',
-    reason: 'null'
+    reason: 'null',
   }
 
   if(req.query.q === null || res.locals.spotify === null){
@@ -167,32 +167,23 @@ async function searchTrack(req, res, next){
     replyJSON.reason = 'id and or search query not provided';
     res.send(replyJSON);
   }
-  console.log('search');
-  spotify.searchTracks(req.query.q, { limit: 20 })
-  .then((data) => {
-    let tracks = data.body.tracks.items;
-    if(tracks === null){
-      console.log('Cannot get items from response');
-      replyJSON.status = 418;
-      replyJSON.reason = 'search error';
-      res.status(418);
-      res.send(replyJSON);
-      return(1);
-    }
-    console.log('test');
+
+  let data = await(spotify.searchTracks(req.query.q, { limit: 20 }));
+  try {
+    if(!data.body.tracks.items) { throw new ReferenceError('Property not found') };
     res.status(200);
     res.type('json');
     replyJSON.status = 200;
     replyJSON.reason = 'success';
-    res.send(tracks);
-  })
-  .catch((err) => {
-    console.log(`Search tracks\n${err}`);
+    res.send(data.body.tracks.items);
+
+  } catch(err) {
+    logError(err);
     res.status(418);
     replyJSON.status = 418;
     replyJSON.reason = 'internal error';
-    res.send(replyJSON);
-  })
+    res.end(replyJSON);
+  }
 }
 
 
