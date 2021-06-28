@@ -135,17 +135,18 @@ function loadTokens(salt, req, res, next){
   if(!fs.existsSync(fileStr)){
     res.status(418);
     res.type('html');
-    res.send('Cannot find token');
+    res.end('Cannot find token');
     return(1);
   }
   let tokenData = JSON.parse(fs.readFileSync(fileStr));
-  try{
+  try {
+    if(!tokenData.acc || !tokenData.ref){ throw new ReferenceError('Property not found') };
     spotify.setAccessToken(tokenData.acc);
     spotify.setRefreshToken(tokenData.ref);
-  }catch(err){
+  } catch(err) {
     console.log(err);
     res.status(418);
-    res.send('token err');
+    res.end('token err');
   }
   res.locals.spotify = spotify;
   next();
