@@ -80,9 +80,8 @@ function writeTokens(salt, req, res, next){
   var tokStr = JSON.stringify(tokData);
   fs.writeFile(`${TOKEN_DIR}/${digest}`, tokStr, (err) =>{
     if(err){
-      console.log("Could not write token");
-      console.log(err);
-      res.send("err");
+      logError(err);
+      res.status(500).end('internal server error');
     }
     res.redirect(returnURL);
   });
