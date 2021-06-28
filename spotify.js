@@ -97,19 +97,21 @@ async function refreshTokens(req, res, next){
   var spotify = res.locals.spotify;
   var replyJSON = {
     status: 'null',
-    reason: 'null'
+    reason: 'null',
   }
+
   try {
     data = await(spotify.refreshAccessToken());
+    if(!data.body.access_token) { throw new ReferenceError('Property not found') };
     spotify.setAccessToken(data.body['access_token']);
     next();
   } catch(err) {
-    console.log('err test')
+    logError(err);
     console.log('Could not refresh access token', err);
     res.status(418);
     replyJSON.status = 418;
     replyJSON.reason = 'bad refresh';
-    res.send(replyJSON);
+    res.end(replyJSON);
   }
 }
 
