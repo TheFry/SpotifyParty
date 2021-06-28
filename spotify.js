@@ -65,10 +65,10 @@ function writeTokens(salt, req, res, next){
   var accTok = spotify.getAccessToken();
   var refTok = spotify.getRefreshToken();
   var returnURL = SHARE_URI;
-
+  var digest;
   try {
     // Return the hashed email as the id
-    let digest = createHash('sha256').update(res.locals.email || '0').digest('hex');
+    digest = createHash('sha256').update(res.locals.email || '0').digest('hex');
     returnURL += digest;
     // Hash one more time with salt and store it
     digest = createHash('sha256').update(digest).update(salt).digest('hex');
@@ -153,7 +153,7 @@ function loadTokens(salt, req, res, next){
 }
 
 
-function searchTrack(req, res, next){
+async function searchTrack(req, res, next){
   var spotify = res.locals.spotify;
   var replyJSON = {
     status: 'null',
